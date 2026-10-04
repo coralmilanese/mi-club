@@ -47,6 +47,19 @@ class TelegramClient
         return $this->post('editMessageReplyMarkup', ['chat_id' => $chatId, 'message_id' => $messageId, 'reply_markup' => ['inline_keyboard' => []]], throw: false);
     }
 
+    /** Manda un archivo (ej. el PDF del estado de cuenta) como documento. No tira excepción si falla: ver enviarMensaje. */
+    public function enviarDocumento(string $chatId, string $nombreArchivo, string $contenido, ?string $caption = null): Response
+    {
+        $respuesta = Http::attach('document', $contenido, $nombreArchivo)
+            ->post("https://api.telegram.org/bot{$this->token}/sendDocument", array_filter(['chat_id' => $chatId, 'caption' => $caption]));
+
+        if ($respuesta->failed()) {
+            Log::warning('Telegram: sendDocument falló', ['chat_id' => $chatId, 'archivo' => $nombreArchivo, 'respuesta' => $respuesta->json()]);
+        }
+
+        return $respuesta;
+    }
+
     /** Descarga un archivo (foto o documento) por su file_id y devuelve su contenido binario. */
     public function descargarArchivo(string $fileId): string
     {

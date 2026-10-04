@@ -5,6 +5,7 @@ namespace App\Services\Telegram;
 use App\Actions\Telegram\ConfirmarIngesta;
 use App\Actions\Telegram\ConstruirPropuesta;
 use App\Actions\Telegram\DescartarIngesta;
+use App\Actions\Telegram\EnviarEstadoCuenta;
 use App\Actions\Telegram\RedactarMensajeConfirmacion;
 use App\Actions\Telegram\ResolverRespuestaTexto;
 use App\Enums\EstadoIngesta;
@@ -183,6 +184,7 @@ class ManejadorDeUpdate
         $pago = app(ConfirmarIngesta::class)($ingesta);
         $this->telegram->quitarTeclado($cb['message']['chat']['id'], (string) $cb['message']['message_id']);
         $this->telegram->enviarMensaje($ingesta->chat->chat_id, '✅ Confirmado: '.route('socios.show', $pago->socio_id));
+        app(EnviarEstadoCuenta::class)($ingesta->chat->chat_id, $pago);
         $this->telegram->responderCallback($cb['id'], 'Confirmado');
     }
 

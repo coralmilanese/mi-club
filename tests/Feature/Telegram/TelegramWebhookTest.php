@@ -376,3 +376,48 @@ test('orden de imputación: de la más vieja a la más nueva, cada una completa,
             && ! str_contains($t, 'marzo 2026: $ 26.336,00 — parcial'); // el resto NO es un pago nuevo a medias
     });
 });
+
+test('al confirmar un pago desde el bot, además del aviso manda el estado de cuenta en PDF', function () {
+    Ai::fakeAgent(ExtractorComprobante::class, [['importe' => 35000.0, 'fecha' => '2026-09-08', 'titular_origen' => 'Gabriel Gelos', 'es_comprobante_transferencia' => true, 'confianza' => 0.95]]);
+    ($this->post)(($this->mensajeFoto)())->assertOk();
+    $ingesta = IngestaTelegram::firstOrFail();
+
+    ($this->post)(['update_id' => 40, 'callback_query' => ['id' => 'cbPdf', 'data' => "confirmar:{$ingesta->id}", 'from' => ['id' => '111'], 'message' => ['message_id' => 55, 'chat' => ['id' => '111']]]])->assertOk();
+
+    Http::assertSent(function ($r) {
+        if (! str_contains($r->url(), 'sendDocument')) {
+            return true;
+        }
+        $partes = collect($r->data());
+        expect($partes->firstWhere('name', 'chat_id')['contents'])->toBe('111')
+            ->and($partes->firstWhere('name', 'caption')['contents'])->toBe('Estado de cuenta actualizado');
+        $archivo = $partes->firstWhere('name', 'document');
+
+        return $archivo !== null && str_starts_with($archivo['contents'], '%PDF');
+    });
+    Http::assertSent(fn ($r) => str_contains($r->url(), 'sendDocument'));
+});
+
+test('confirmar desde la bandeja web también manda el estado de cuenta al chat de origen', function () {
+    Ai::fakeAgent(ExtractorComprobante::class, [['importe' => 35000.0, 'fecha' => '2026-09-08', 'titular_origen' => 'Gabriel Gelos', 'es_comprobante_transferencia' => true, 'confianza' => 0.95]]);
+    ($this->post)(($this->mensajeFoto)())->assertOk();
+    $ingesta = IngestaTelegram::firstOrFail();
+
+    $this->actingAs(User::factory()->create())->post("/telegram/pendientes/{$ingesta->id}/confirmar")->assertRedirect();
+
+    Http::assertSent(fn ($r) => str_contains($r->url(), 'sendDocument') && collect($r->data())->firstWhere('name', 'chat_id')['contents'] === '111');
+});
+
+test('si falla el envío del PDF, el pago queda confirmado igual (no rompe la confirmación)', function () {
+    Http::fake([
+        'api.telegram.org/*sendDocument*' => Http::response(['ok' => false], 500),
+        'api.telegram.org/*' => Http::response(['ok' => true, 'result' => ['file_path' => 'photos/x.jpg']]),
+    ]);
+    Ai::fakeAgent(ExtractorComprobante::class, [['importe' => 35000.0, 'fecha' => '2026-09-08', 'titular_origen' => 'Gabriel Gelos', 'es_comprobante_transferencia' => true, 'confianza' => 0.95]]);
+    ($this->post)(($this->mensajeFoto)())->assertOk();
+    $ingesta = IngestaTelegram::firstOrFail();
+
+    ($this->post)(['update_id' => 41, 'callback_query' => ['id' => 'cbPdfFail', 'data' => "confirmar:{$ingesta->id}", 'from' => ['id' => '111'], 'message' => ['message_id' => 55, 'chat' => ['id' => '111']]]])->assertOk();
+
+    expect(Pago::count())->toBe(1)->and($ingesta->fresh()->estado)->toBe(EstadoIngesta::Confirmada);
+});

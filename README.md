@@ -1,6 +1,6 @@
 # Mi Club — Sistema de gestión AASR
 
-Socios, cuotas y libro de caja de la Asociación Argentina de Santa Rosa. Laravel 12 + React 19 (Inertia) + PostgreSQL.
+Socios, cuotas y libro de caja de la Asociación Aeromodelista Santa Rosa. Laravel 12 + React 19 (Inertia) + PostgreSQL.
 
 ## Levantar el entorno de desarrollo
 

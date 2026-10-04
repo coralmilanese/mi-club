@@ -108,6 +108,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::get('socios/{socio}', [SocioController::class, 'show'])->name('socios.show');
+    Route::get('socios/{socio}/estado-cuenta', [SocioController::class, 'estadoCuenta'])->name('socios.estado-cuenta');
     Route::get('socios/{socio}/documentos/{documento}', [SocioDocumentoController::class, 'show'])->name('socios.documentos.show');
 });
 

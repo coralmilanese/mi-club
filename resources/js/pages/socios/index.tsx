@@ -50,6 +50,21 @@ const columnas: ColumnDef<SocioFila>[] = [
         header: 'Estado',
         cell: ({ row }) => <Badge variant={row.original.estado === 'baja' ? 'secondary' : 'default'}>{row.original.estado_label}</Badge>,
     },
+    {
+        id: 'estado_cuenta',
+        header: '',
+        cell: ({ row }) => (
+            <a
+                href={route('socios.estado-cuenta', row.original.id)}
+                target="_blank"
+                rel="noreferrer"
+                className="text-muted-foreground hover:text-foreground hover:underline"
+                title="Descargar estado de cuenta en PDF"
+            >
+                PDF
+            </a>
+        ),
+    },
 ];
 
 export default function SociosIndex({ socios, filtros, opciones }: Props) {

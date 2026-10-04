@@ -14,6 +14,7 @@ use App\Models\Socio;
 use App\Models\TipoDocumento;
 use App\Services\Cuotas\ResolverImporteExigible;
 use App\Services\Pagos\ImputadorDePagos;
+use App\Services\Reportes\EstadoCuentaSocio;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -199,6 +200,13 @@ class SocioController extends Controller
         $socio->update($request->validated());
 
         return to_route('socios.show', $socio)->with('success', 'Datos guardados.');
+    }
+
+    public function estadoCuenta(Request $request, Socio $socio, EstadoCuentaSocio $generador): \Illuminate\Http\Response
+    {
+        $anio = $request->integer('anio') ?: now()->year;
+
+        return $generador->pdf($socio, $anio)->stream($generador->nombreArchivo($socio, $anio));
     }
 
     /** @return array<string, list<array{value: string, label: string}>> */

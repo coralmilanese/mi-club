@@ -244,16 +244,23 @@ export default function SocioShow({
                         <Badge variant="outline">{socio.categoria}</Badge>
                         <Badge variant="outline">{socio.sede}</Badge>
                     </div>
-                    {esTesorero && (
-                        <div className="flex gap-2">
-                            <Button variant="outline" asChild>
-                                <Link href={route('socios.edit', socio.id)}>Editar</Link>
-                            </Button>
-                            <Button variant={puede_reingresar ? 'default' : 'destructive'} onClick={() => setMostrarEstado((v) => !v)}>
-                                {puede_reingresar ? 'Reingresar' : 'Dar de baja'}
-                            </Button>
-                        </div>
-                    )}
+                    <div className="flex gap-2">
+                        <Button variant="outline" asChild>
+                            <a href={route('socios.estado-cuenta', socio.id)} target="_blank" rel="noreferrer">
+                                Estado de cuenta (PDF)
+                            </a>
+                        </Button>
+                        {esTesorero && (
+                            <>
+                                <Button variant="outline" asChild>
+                                    <Link href={route('socios.edit', socio.id)}>Editar</Link>
+                                </Button>
+                                <Button variant={puede_reingresar ? 'default' : 'destructive'} onClick={() => setMostrarEstado((v) => !v)}>
+                                    {puede_reingresar ? 'Reingresar' : 'Dar de baja'}
+                                </Button>
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 {esTesorero && mostrarEstado && (

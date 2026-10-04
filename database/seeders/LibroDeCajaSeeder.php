@@ -13,7 +13,7 @@ class LibroDeCajaSeeder extends Seeder
 {
     public function run(): void
     {
-        $banco = Cuenta::firstOrCreate(['nombre' => 'Banco AASR'], ['tipo' => 'banco', 'titular' => 'Asociación Argentina de Santa Rosa', 'aplica_tributos' => true]);
+        $banco = Cuenta::firstOrCreate(['nombre' => 'Banco AASR'], ['tipo' => 'banco', 'titular' => 'Asociación Aeromodelista Santa Rosa', 'aplica_tributos' => true]);
         $caja = Cuenta::firstOrCreate(['nombre' => 'Efectivo'], ['tipo' => 'efectivo', 'aplica_tributos' => false]);
         Cuenta::firstOrCreate(['nombre' => 'Plazo Fijo'], ['tipo' => 'inversion', 'aplica_tributos' => false]);
 

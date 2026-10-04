@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Telegram;
 
 use App\Actions\Telegram\ConfirmarIngesta;
 use App\Actions\Telegram\DescartarIngesta;
+use App\Actions\Telegram\EnviarEstadoCuenta;
 use App\Http\Controllers\Controller;
 use App\Models\IngestaTelegram;
 use Illuminate\Http\RedirectResponse;
@@ -39,13 +40,15 @@ class IngestaTelegramController extends Controller
         return Inertia::render('telegram/pendientes', ['ingestas' => $ingestas]);
     }
 
-    public function confirmar(IngestaTelegram $ingesta, ConfirmarIngesta $confirmar): RedirectResponse
+    public function confirmar(IngestaTelegram $ingesta, ConfirmarIngesta $confirmar, EnviarEstadoCuenta $enviarEstadoCuenta): RedirectResponse
     {
         try {
             $pago = $confirmar($ingesta);
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors());
         }
+
+        $enviarEstadoCuenta($ingesta->chat->chat_id, $pago);
 
         return to_route('telegram.pendientes.index')->with('success', "Pago registrado para {$pago->socio->nombre_completo}.");
     }
